@@ -59,7 +59,8 @@ FauxJax.prototype.waitFor = function(n, callback) {
 
 // specific Node.JS implementation, can be used to
 // socket.emit('error') which will then be
-FauxJax.prototype._newSocket = function(socket) {
+FauxJax.prototype._newSocket = function(socket, opts) {
+  this.emit('pre-request', opts, socket.bypass.bind(socket));
   this.emit('socket', socket);
 };
 

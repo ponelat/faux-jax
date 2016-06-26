@@ -114,3 +114,29 @@ test('fauxJax supports gzip', function(t) {
     });
   }).end();
 });
+
+test('fauxJax allows bypassing', function(t) {
+  var fauxJax = require('../../');
+  var http = require('http');
+
+  fauxJax.install();
+
+  fauxJax.once('pre-request', function(opts, bypass) {
+    if (opts.host === 'fake.test') {
+      bypass();
+    }
+  });
+
+  fauxJax.once('request', function(req) {
+    req.respond(200);
+    fauxJax.restore();
+  });
+
+  http.request('http://fake.test', function() {
+    t.end('Failed to bypass "http://fake.test"');
+  })
+  .on('error', function(err) {
+    t.ok(/ENOTFOUND/.test(err.message));
+    t.end();
+  }).end();
+});
