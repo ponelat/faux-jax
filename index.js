@@ -38,6 +38,7 @@ FauxJax.prototype.restore = function() {
   this._stopWaiting();
   this._installed = false;
   this._mitm.disable();
+  this.removeAllListeners('pre-request');
   this.removeAllListeners('request');
   this.emit('restore');
 };
