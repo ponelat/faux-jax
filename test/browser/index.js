@@ -78,6 +78,54 @@ function run() {
         t.end();
       });
     });
+
+    test('fauxJax allows bypassing XMLHttpRequests', function(t) {
+      var fauxJax = require('../../');
+      fauxJax.install();
+      t.plan(3);
+
+      var xhr = new XMLHttpRequest();
+      xhr.open('GET', location.pathname);
+
+      if (support.xhr.addEventListener) {
+        xhr.addEventListener('load', function() {
+          t.pass('We used addEventListener');
+          t.ok(
+            /faux\-jax/.test(xhr.responseText),
+            'We got the current location content with ajax'
+          );
+        });
+      } else {
+        xhr.onreadystatechange = function() {
+          if (xhr.readyState !== 4) {
+            return;
+          }
+
+          t.pass('We used onreadystatechange=');
+          t.ok(
+            /faux\-jax/.test(xhr.responseText),
+            'We got the current location content with ajax'
+          );
+        };
+      }
+
+      xhr.send();
+
+      fauxJax.once('pre-request', function(req) {
+        t.equal(typeof req, 'object', '1st arg is an object');
+        t.equal(req.requestURL, location.pathname, '1st arg has .requestURL');
+        t.equal(typeof req.bypass, 'function', 'has a .bypass function');
+        req.bypass();
+        fauxJax.restore();
+      });
+
+      // Failure reporting case
+      fauxJax.once('request', function() {
+        t.fail('Failed to bypass a request');
+        fauxJax.restore();
+        t.end();
+      });
+    });
   }
 
   if (support.xdr) {
