@@ -48,6 +48,7 @@ FauxJax.prototype.restore = function() {
   }
 
   this.removeAllListeners('request');
+  this.removeAllListeners('pre-request');
   this._installed = false;
 };
 
@@ -67,12 +68,23 @@ FauxJax.prototype.waitFor = function(n, callback) {
 };
 
 FauxJax.prototype._newRequest = function(fakeRequest) {
+  this._preRequest(fakeRequest);
+
+  if (fakeRequest._bypass) {
+    fakeRequest.realSend();
+    return;
+  }
+
   if (this.listeners('request').length === 0) {
     this.emit('error', new Error('faux-jax: received an unexpected request: ' + fakeRequest.requestURL));
     return;
   }
 
   this.emit('request', fakeRequest);
+};
+
+FauxJax.prototype._preRequest = function(fakeRequest) {
+  this.emit('pre-request', fakeRequest);
 };
 
 FauxJax.prototype.support = support;
@@ -87,6 +99,7 @@ inherits(FakeXHR, XMLHttpRequestMock);
 
 FakeXHR.prototype.send = function() {
   var req = this;
+
   XMLHttpRequestMock.prototype.send.apply(req, arguments);
   if (req.async) {
     setTimeout(function() {
