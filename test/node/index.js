@@ -121,9 +121,9 @@ test('fauxJax allows bypassing', function(t) {
 
   fauxJax.install();
 
-  fauxJax.once('pre-request', function(opts, bypass) {
-    if (opts.host === 'fake.test') {
-      bypass();
+  fauxJax.once('pre-request', function(req) {
+    if (req.requestURL === 'http://fake.test/') {
+      req.bypass();
     }
   });
 
@@ -136,7 +136,7 @@ test('fauxJax allows bypassing', function(t) {
     t.end('Failed to bypass "http://fake.test"');
   })
   .on('error', function(err) {
-    t.ok(/ENOTFOUND/.test(err.message));
+    t.ok(/fake.test/.test(err.message));
     t.end();
   }).end();
 });

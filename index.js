@@ -1,6 +1,7 @@
 var EventEmitter = require('events').EventEmitter;
 var inherits = require('util').inherits;
 var zlib = require('zlib');
+var Url = require('url');
 
 var forEach = require('lodash').forEach;
 var Mitm = require('mitm');
@@ -61,7 +62,11 @@ FauxJax.prototype.waitFor = function(n, callback) {
 // specific Node.JS implementation, can be used to
 // socket.emit('error') which will then be
 FauxJax.prototype._newSocket = function(socket, opts) {
-  this.emit('pre-request', opts, socket.bypass.bind(socket));
+  var xhrInterface = {
+    bypass: socket.bypass.bind(socket),
+    requestURL: Url.format(opts)
+  };
+  this.emit('pre-request', xhrInterface);
   this.emit('socket', socket);
 };
 
